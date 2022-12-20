@@ -8,7 +8,15 @@ public class CxfProxyRoute extends RouteBuilder {
 
 	@Override
 	public void configure() throws Exception {
-		from("cxf:bean:mathServicePoxy?dataFormat=PAYLOAD").to("log:input").to("log:output");
+		from("cxf:bean:mathServicePoxy?dataFormat=PAYLOAD")
+		.doTry()
+		.to("log:input")
+		.to("cxf:bean:backendMathService?dataFormat=PAYLOAD")
+		.to("log:output")
+		  .doCatch(Exception.class)
+            .transform().simple("${exception.message}") 
+			.to("log:output")			
+          .end();
 	}
 
 }
